@@ -39,29 +39,39 @@ Paste image -> plugin persists to disk (1ms)
 
 ## Installation
 
-### Option A: Installer script (recommended)
+### One-line install (recommended)
+
+Copy and paste ONE command into your terminal. It downloads everything,
+installs it, edits your `opencode.json` automatically (with a backup), and
+runs a self-check. No npm, no dependencies, no manual steps.
 
 **Windows (PowerShell):**
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File install.ps1
+powershell -ExecutionPolicy Bypass -c "irm https://raw.githubusercontent.com/ianEstrada/opencode-vision-bridge/master/install.ps1 | iex"
 ```
 
 **macOS / Linux (bash):**
 
 ```bash
-bash install.sh
+curl -fsSL https://raw.githubusercontent.com/ianEstrada/opencode-vision-bridge/master/install.sh | bash
 ```
 
-The installer:
+What the installer does automatically:
 
-1. Detects the operating system and your OpenCode config directory
-2. Copies `plugin/vision-bridge.ts` to `~/.config/opencode/plugins/`
-3. Copies `agent/vision.md` to `~/.config/opencode/agent/`
-4. Prints the two configuration additions you must make (below)
-5. Runs a self-check and reports the result
+1. Detects your OpenCode config directory
+2. Downloads and installs `plugin/vision-bridge.ts`, `agent/vision.md`, and
+   `command/vision-config.md`
+3. Edits `opencode.json` (backup saved as `opencode.json.vision-backup`):
+   - adds `"vision": "allow"` to your orchestrator agent's `permission.task`
+   - appends the **Image Vision Handoff** rule to the orchestrator prompt
+4. Validates the JSON (restores the backup if anything goes wrong)
+5. Runs a self-check
 
-### Option B: Manual
+Then: restart OpenCode and run `/vision-config` in the chat to choose your
+vision model.
+
+### Manual install
 
 1. Copy `plugin/vision-bridge.ts` to `~/.config/opencode/plugins/`
 2. Copy `agent/vision.md` to `~/.config/opencode/agent/`
