@@ -2,14 +2,11 @@
 
 <img src="banner.png" alt="Vision Agent by Lightning Solutions" width="100%">
 
-# Vision Agent
-
-**Vision Agent by Lightning Solutions** — Give eyes to OpenCode models that cannot see images.
+**Give eyes to OpenCode models that cannot see images.**
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-blue.svg)]()
 [![OpenCode](https://img.shields.io/badge/OpenCode-1.18%2B-cyan.svg)]()
-[![Vision](https://img.shields.io/badge/Vision-MiMo--V2.5%20%7C%20Groq-22d3ee.svg)]()
 
 </div>
 
