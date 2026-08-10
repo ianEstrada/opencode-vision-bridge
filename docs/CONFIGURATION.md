@@ -40,7 +40,7 @@ Copy `command/vision-config.md` to `~/.config/opencode/command/` (or
 in the chat to:
 
 - Check the installation state (plugin, sub-agent, permission, rule)
-- Choose the vision model (MiMo-V2.5 or Groq)
+- Choose the vision model (MiMo-V2.5, MiMo-V2.5 Free, or Groq)
 - Fix anything missing and get a final diagnostic report
 
 ## 4. Groq provider (only if using Groq as the vision model)
@@ -56,6 +56,16 @@ in the chat to:
   }
 }
 ```
+
+## Vision model options
+
+| Model | Provider ID / Model ID | Access |
+|---|---|---|
+| MiMo-V2.5 | `opencode-go/mimo-v2.5` | Included in the opencode-go package (30,100 req/5h) |
+| MiMo-V2.5 Free | `opencode/mimo-v2.5-free` | OpenCode Zen — free, 200K context / 32K output, multimodal (image/audio/video) |
+| Groq qwen | `groq/qwen/qwen3.6-27b` | Groq API key (free tier ~8K tokens/min) |
+
+To switch models, edit the `model:` line in `agent/vision.md` frontmatter.
 
 ## Important
 

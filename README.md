@@ -123,12 +123,14 @@ The sub-agent needs one multimodal model. Choose the one that fits your setup:
 | Model | Access | Limits | Recommendation |
 |---|---|---|---|
 | **MiMo-V2.5** | Included in the `opencode-go` package | 30,100 requests/5h | **Default — no extra setup** |
+| **MiMo-V2.5 Free** | OpenCode Zen (`opencode/mimo-v2.5-free`) | Free, 200K context / 32K output | Best if you do NOT have opencode-go |
 | **Groq** `qwen/qwen3.6-27b` | API key (free tier) | ~8K tokens/min, may return HTTP 429 | Only if you already use Groq |
 
 > [!TIP]
-> Start with MiMo-V2.5 — it is already in your opencode-go package, requires
-> no API key, and has no aggressive rate limits. Switch to Groq only if you
-> need it for another reason.
+> Start with a MiMo variant — no API key required and no aggressive rate
+> limits. Use `opencode-go/mimo-v2.5` if you have the opencode-go package,
+> or `opencode/mimo-v2.5-free` via OpenCode Zen otherwise. Switch to Groq
+> only if you need it for another reason.
 
 ---
 

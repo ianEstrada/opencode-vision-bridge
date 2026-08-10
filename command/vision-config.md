@@ -25,8 +25,9 @@ Ask the user which vision model they want for the sub-agent:
 
 | Option | Model | Notes |
 |---|---|---|
-| 1 | `opencode-go/mimo-v2.5` | Recommended - included in the opencode-go package, 30,100 req/5h |
-| 2 | `groq/qwen/qwen3.6-27b` | Requires Groq API key, free tier ~8K tokens/min |
+| 1 | `opencode-go/mimo-v2.5` | Recommended if they have the opencode-go package — 30,100 req/5h |
+| 2 | `opencode/mimo-v2.5-free` | OpenCode Zen — free, 200K context / 32K output, multimodal |
+| 3 | `groq/qwen/qwen3.6-27b` | Requires Groq API key, free tier ~8K tokens/min |
 
 Update `~/.config/opencode/agent/vision.md` (the `model:` line in the frontmatter) to the selected model. Confirm the change with the user before editing.
 
