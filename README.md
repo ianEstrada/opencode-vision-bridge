@@ -36,6 +36,10 @@ its model; image handling is **automatized** — any agent that can delegate
 gets eyes, without switching models once. In a harness where automation is
 the whole point, that is the difference between a flow and a chore.
 
+**Before and after:**
+
+<img src="assets/demo.gif" alt="Vision Agent demo - paste, delegate, get analysis" width="100%">
+
 It works through a two-piece architecture designed for reliability:
 
 - **`vision-bridge` plugin (Gatekeeper)** — detects the pasted image,
