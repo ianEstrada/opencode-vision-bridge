@@ -27,7 +27,14 @@ When the user attaches or pastes an image in a message (image file part, screens
 3. Never claim to have seen an image you have not seen.
 ```
 
-## 3. (Opcional) Provider Groq — solo si querés que el sub-agente vision use Groq en vez de MiMo
+## 3. (Opcional) Command /vision-config — diagnóstico y selector de modelo
+
+Copiá `command/vision-config.md` a `~/.config/opencode/command/` (o `.opencode/command/` del proyecto). Después de reiniciar, ejecutá `/vision-config` en el chat para:
+- Verificar el estado de la instalación (plugin, sub-agente, permisos, regla)
+- Elegir el modelo de visión (MiMo-V2.5 o Groq)
+- Corregir lo que falte y obtener el diagnóstico final
+
+## 4. (Opcional) Provider Groq — solo si querés que el sub-agente vision use Groq en vez de MiMo
 
 ```json
 "provider": {

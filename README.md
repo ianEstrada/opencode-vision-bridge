@@ -1,43 +1,79 @@
-# ⚡ Vision Agent — by Lightning Solutions
+# Vision Agent — by Lightning Solutions
 
-**Dale ojos a tu modelo de OpenCode que no puede ver imágenes.**
-
-¿Usás OpenCode con un modelo sin visión (como deepseek-flash)? Si pegás una imagen en el chat, te aparece:
+Vision Agent gives eyes to OpenCode models that cannot see images. When you paste
+a screenshot into the chat with a non-multimodal model, OpenCode fails with:
 
 ```
 ERROR: Cannot read "clipboard" (this model does not support image input)
 ```
 
-Este proyecto resuelve eso con una **arquitectura en 2 piezas** que es simple, rápida y resistente a fallos:
+Vision Agent solves this with a two-piece architecture designed for reliability:
 
-| Pieza | Rol | Qué hace |
+| Piece | Role | Responsibility |
 |---|---|---|
-| **Plugin `vision-bridge`** | 🚪 **Portero** | Detecta la imagen pegada, la guarda a disco y la reemplaza por un placeholder con la ruta. Tarda **~1ms**. No llama APIs, no redimensiona, no falla. |
-| **Sub-agente `vision`** | 🧠 **Cerebro** | El orquestador SIEMPRE le delega la descripción. Usa un modelo multimodal (MiMo-V2.5 o Groq qwen) que lee la imagen desde la ruta del placeholder y la describe con todo el detalle. |
+| `vision-bridge` plugin | Gatekeeper | Detects the pasted image, persists it to disk, replaces it with a placeholder carrying the file path. Executes in ~1ms. Makes no API calls, performs no image processing. |
+| `vision` sub-agent | Brain | The orchestrator always delegates image description to this sub-agent. It runs a multimodal model (MiMo-V2.5 or Groq), reads the image from the placeholder path, and returns a detailed description. |
 
 ```
-Pegás la imagen → plugin la guarda a disco (1ms)
-  → placeholder con ruta: [🖼️ Image attached — Vision Agent by Lightning Solutions (see analysis). Image path: ...]
-  → el orquestador delega al sub-agente vision
-  → sub-agente la lee y la describe → respondés con el análisis
+Paste image -> plugin persists to disk (1ms)
+  -> placeholder with path: [Image attached - Vision Agent by Lightning Solutions (see analysis). Image path: ...]
+  -> orchestrator delegates to the vision sub-agent
+  -> sub-agent reads and describes -> you get the full analysis
 ```
 
 ---
 
-## 📁 Instalación (3 archivos)
+## Requirements
 
-### 1. Copiá los archivos
+- OpenCode v1.18 or newer (Windows, macOS, or Linux)
+- A primary model without vision support (e.g. deepseek-flash), or the desire
+  for deeper visual analysis
+- One vision-capable model available to the sub-agent:
+  - **MiMo-V2.5** via the `opencode-go` package (recommended: 30,100
+    requests/5h, no rate-limit friction)
+  - **Groq** `qwen/qwen3.6-27b` with an API key (free tier: ~8K tokens/min;
+    may return HTTP 429 under load)
+- A shell (PowerShell on Windows, bash on macOS/Linux) for the installer
 
-| Archivo | Dónde va |
-|---|---|
-| `plugin/vision-bridge.ts` | `~/.config/opencode/plugins/` (o `.opencode/plugins/` del proyecto) |
-| `agent/vision.md` | `~/.config/opencode/agent/` (o `.opencode/agent/` del proyecto) |
+---
 
-### 2. Agregá los cambios de configuración
+## Installation
 
-Seguí `config/opencode.json.md` — son 2 cambios en tu `opencode.json`:
+### Option A: Installer script (recommended)
 
-**a)** Permití que el orquestador delegue al sub-agente `vision`:
+**Windows (PowerShell):**
+
+```powershell
+powershell -ExecutionPolicy Bypass -File install.ps1
+```
+
+**macOS / Linux (bash):**
+
+```bash
+bash install.sh
+```
+
+The installer:
+
+1. Detects the operating system and your OpenCode config directory
+2. Copies `plugin/vision-bridge.ts` to `~/.config/opencode/plugins/`
+3. Copies `agent/vision.md` to `~/.config/opencode/agent/`
+4. Prints the two configuration additions you must make (below)
+5. Runs a self-check and reports the result
+
+### Option B: Manual
+
+1. Copy `plugin/vision-bridge.ts` to `~/.config/opencode/plugins/`
+2. Copy `agent/vision.md` to `~/.config/opencode/agent/`
+3. Apply the configuration changes below
+4. Restart OpenCode
+
+### Configuration changes
+
+Add to your `~/.config/opencode/opencode.json`:
+
+**1. Allow the orchestrator to delegate to the `vision` sub-agent** (inside
+your orchestrator agent's `permission.task`):
 
 ```json
 "permission": {
@@ -47,87 +83,123 @@ Seguí `config/opencode.json.md` — son 2 cambios en tu `opencode.json`:
 }
 ```
 
-**b)** Agregá la regla **Image Vision Handoff** al prompt de tu agente orquestador (el texto completo está en `config/opencode.json.md`).
+**2. Add the Image Vision Handoff rule to your orchestrator agent's prompt**:
 
-### 3. Elegí el modelo de visión del sub-agente
+```
+### Image Vision Handoff (MANDATORY)
 
-En `agent/vision.md`, la línea `model:` define qué modelo ve las imágenes:
+When the user attaches or pastes an image in a message (image file part, screenshot, or image in chat) and you cannot see its content:
+1. If the message contains the placeholder `[Image attached - Vision Agent by Lightning Solutions (see analysis). Image path: <path>]`, ALWAYS delegate to the `vision` sub-agent (multimodal MiMo-V2.5): pass the `Image path: <path>` value from the placeholder as the file path in the delegation prompt, ask for a detailed description in the user's language, and use its report as your understanding of the image. This is the PRIMARY path - do not skip it.
+2. If a FULL text description was injected instead (part starting with `[Image attached - described by vision model]:` followed by a real description), use that description directly and do NOT delegate.
+3. Never claim to have seen an image you have not seen.
+```
 
-| Opción | Modelo | Costo |
-|---|---|---|
-| **MiMo-V2.5** (recomendado) | `opencode-go/mimo-v2.5` | Incluido en el paquete opencode-go — **30.100 req/5h** |
-| Groq | `groq/qwen/qwen3.6-27b` | Tier free: ~8K tokens/min |
+Full reference: `config/opencode.json.md`
 
-> MiMo es la opción recomendada: está en el paquete opencode-go, es gratis y sin rate limits agresivos.
+### Post-install: configure the model
 
-### 4. Reiniciá OpenCode
+Inside OpenCode, run:
 
-La configuración **no se recarga en caliente** — cerrá y volvé a abrir OpenCode.
+```
+/vision-config
+```
 
----
-
-## 🧪 Cómo probar
-
-1. Pegá una imagen en el chat (Ctrl+V o arrastrá un archivo)
-2. Tu mensaje mostrará el placeholder con la ruta (sin error de clipboard)
-3. El orquestador delega al sub-agente vision automáticamente
-4. Recibís la descripción/análisis completo de la imagen
-
-**Pro tip**: no solo describe — podés pedirle que **evalúe** (ej. *"evaluá este diseño de UI"* o *"¿qué dice este error?"*) y te responde con análisis profundo.
+This command checks the installation state, lets you choose the vision model
+(MiMo-V2.5 or Groq), and runs a self-diagnostic.
 
 ---
 
-## 🧠 Por qué esta arquitectura (y no otra)
+## Verification
 
-Probamos durante una sesión completa la alternativa "el plugin describe automáticamente con una API". Fue un cementerio de fallos:
+1. Restart OpenCode (configuration does not hot-reload)
+2. Paste an image (Ctrl+V or drag and drop)
+3. Your message shows the placeholder with the image path (no clipboard error)
+4. The orchestrator delegates to the vision sub-agent
+5. You receive the full description or analysis of the image
 
-| Intento | Falla |
+The sub-agent does not only describe - you can ask it to evaluate (for example:
+"evaluate this UI design" or "what does this error say?") and it returns
+in-depth analysis.
+
+---
+
+## Conditions and limitations
+
+- Configuration changes require an OpenCode restart to take effect.
+- Pasted images are written to the system temp directory and are cleaned up
+  by the OS.
+- Images are NEVER resized or downscaled. Resizing degrades fine text and
+  causes vision models to hallucinate details (they invent typos and characters
+  that do not exist). Full resolution always wins.
+- The `vision` sub-agent is read-only: it can read image files but cannot edit
+  files or run commands.
+- Descriptions are generated by third-party models (MiMo-V2.5, Groq). Review
+  their terms of service for acceptable use of generated content.
+- Vision API calls may be subject to rate limits depending on the provider
+  and plan.
+
+---
+
+## Architecture rationale
+
+We initially implemented automatic description inside the plugin (calling a
+vision API directly). Production testing revealed multiple failure modes:
+
+| Attempt | Failure |
 |---|---|
-| Llamar a Groq desde el plugin | Rate limit del tier free |
-| Llamar a MiMo vía SDK desde el plugin | `session.create` no conecta en producción |
-| Hook `experimental.chat.messages.transform` | Nunca inyectó la descripción en producción |
-| Redimensionar la imagen antes de enviarla | El texto fino se degrada y el modelo **alucina** detalles (inventa typos que no existen) |
+| Call Groq from the plugin | Free-tier rate limits (HTTP 429) |
+| Call MiMo via the SDK from the plugin | `session.create` does not connect in production |
+| `experimental.chat.messages.transform` hook | Never injected the description in production |
+| Resizing the image before sending | Degraded fine text; the model hallucinated details |
 
-**La lección**: la arquitectura más resistente es la que tiene MENOS eslabones y usa mecanismos NATIVOS de OpenCode (sub-agentes), no hooks experimentales ni APIs externas desde el plugin.
+The lesson: the most failure-resistant architecture has the fewest moving
+parts and uses OpenCode-native mechanisms (sub-agents), not experimental hooks
+or external API calls from the plugin.
 
-Reglas de diseño finales:
-- **NUNCA redimensionar** — la calidad total gana; el resize hace alucinar al modelo
-- **NUNCA llamar APIs de visión desde el plugin** — rate limits y fallos silenciosos
-- **Siempre delegar** al sub-agente vision — mecanismo nativo, probado y robusto
+Design rules:
+
+- NEVER resize images - full quality wins; resizing causes hallucinations
+- NEVER call vision APIs from the plugin - rate limits and silent failures
+- ALWAYS delegate to the vision sub-agent - a native, proven mechanism
 
 ---
 
-## 🗺️ Estructura
+## Repository structure
 
 ```
 opencode-vision-bridge/
 ├── plugin/
-│   └── vision-bridge.ts      ← el portero (3.3 KB, ~1ms)
+│   └── vision-bridge.ts      Gatekeeper (3.3 KB, ~1ms)
 ├── agent/
-│   └── vision.md             ← el cerebro (sub-agente multimodal)
-└── config/
-    └── opencode.json.md      ← cambios de config + regla del orquestador
+│   └── vision.md             Brain (multimodal sub-agent)
+├── command/
+│   └── vision-config.md      /vision-config command for OpenCode
+├── config/
+│   └── opencode.json.md      Configuration reference
+├── install.sh                macOS/Linux installer
+├── install.ps1               Windows installer
+└── README.md
 ```
 
 ---
 
-## 🛠️ Troubleshooting
+## Troubleshooting
 
-| Síntoma | Causa | Solución |
+| Symptom | Cause | Fix |
 |---|---|---|
-| `Cannot read "clipboard"` al pegar | Plugin no cargado (OpenCode viejo) | Reiniciá OpenCode |
-| Placeholder dice `Image path: unknown` | La imagen no se pudo persistir | Revisá permisos de escritura en el temp |
-| El sub-agente vision no aparece | `agent/vision.md` mal ubicado o sin reiniciar | Verificá la ruta y reiniciá |
-| El orquestador no delega | Falta la regla Image Vision Handoff | Agregá la sección al prompt (config/) |
-| Groq da 429 | Rate limit del tier free | Cambiá el modelo del sub-agente a MiMo |
-| La descripción inventa texto | Imagen redimensionada | Asegurate de usar el plugin sin resize (este repo) |
+| `Cannot read "clipboard"` when pasting | Plugin not loaded (OpenCode not restarted) | Restart OpenCode |
+| Placeholder says `Image path: unknown` | Image could not be persisted | Check write permissions on the temp directory |
+| The `vision` sub-agent is not available | `agent/vision.md` missing or OpenCode not restarted | Run the installer, then restart |
+| The orchestrator does not delegate | Image Vision Handoff rule missing from the prompt | Add the rule (see Configuration changes) |
+| Groq returns HTTP 429 | Free-tier rate limit | Switch the sub-agent model to MiMo-V2.5 |
+| The description invents text | Image was resized somewhere | Use this plugin unmodified (no resize path exists) |
 
 ---
 
-## ⚖️ Licencia
+## License
 
-MIT — libre para usar, modificar y compartir.
+MIT - free to use, modify, and share.
 
 ---
 
-**Vision Agent by Lightning Solutions** ⚡
+**Vision Agent by Lightning Solutions**
