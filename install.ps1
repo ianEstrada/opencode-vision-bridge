@@ -81,32 +81,28 @@ if (Test-Path $ConfigPath) {
 
     $json = Get-Content $ConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
 
-    # find the orchestrator: agent with a permission.task block (fallback: first agent)
-    $orchestratorName = $null
-    foreach ($prop in $json.agent.PSObject.Properties) {
-        if ($prop.Value.permission -and $prop.Value.permission.task) {
-            $orchestratorName = $prop.Name
-            break
-        }
-    }
-    if (-not $orchestratorName) {
-        $orchestratorName = ($json.agent.PSObject.Properties | Select-Object -First 1).Name
-    }
+    # Edit EVERY agent that has a permission.task block (option C):
+    # any agent that can delegate (plan, build, gentle-orchestrator, ...)
+    # gets the vision permission and the Handoff rule, so pasting an
+    # image works regardless of which agent the user talks to.
+    $editedAgents = @()
 
-    if ($orchestratorName) {
-        $agent = $json.agent.$orchestratorName
+    foreach ($prop in $json.agent.PSObject.Properties) {
+        $agent = $prop.Value
+        $name = $prop.Name
+
+        if (-not $agent.permission -or -not $agent.permission.task) {
+            Write-Host "[INFO] Skipping '$name' (no permission.task)"
+            continue
+        }
 
         # 2a. permission.task -> vision: allow
-        if ($agent.permission -and $agent.permission.task) {
-            if (-not $agent.permission.task.vision) {
-                $agent.permission.task | Add-Member -NotePropertyName "vision" -NotePropertyValue "allow"
-                $jsonEdited = $true
-                Write-Status $true "Permission added: $orchestratorName.permission.task.vision = allow"
-            } else {
-                Write-Host "[INFO] Permission vision already present"
-            }
+        if (-not $agent.permission.task.vision) {
+            $agent.permission.task | Add-Member -NotePropertyName "vision" -NotePropertyValue "allow"
+            $jsonEdited = $true
+            Write-Status $true "Permission added: $name.permission.task.vision = allow"
         } else {
-            Write-Host "[WARN] No permission.task found on agent '$orchestratorName' - add it manually (see config/opencode.json.md)"
+            Write-Host "[INFO] Permission vision already present in '$name'"
         }
 
         # 2b. append the vision rule to the prompt
@@ -114,11 +110,17 @@ if (Test-Path $ConfigPath) {
             if ($agent.prompt -notmatch "Image Vision Handoff") {
                 $agent.prompt = $agent.prompt.TrimEnd() + "`n`n" + $visionRule.Trim()
                 $jsonEdited = $true
-                Write-Status $true "Vision Handoff rule appended to $orchestratorName prompt"
+                Write-Status $true "Vision Handoff rule appended to '$name' prompt"
             } else {
-                Write-Host "[INFO] Vision Handoff rule already present"
+                Write-Host "[INFO] Vision Handoff rule already present in '$name'"
             }
         }
+
+        $editedAgents += $name
+    }
+
+    if ($editedAgents.Count -eq 0) {
+        Write-Host "[WARN] No agent with permission.task found - add config manually (see config/opencode.json.md)"
     }
 
     if ($jsonEdited) {

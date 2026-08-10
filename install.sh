@@ -87,40 +87,42 @@ with open(config_path, "r", encoding="utf-8") as f:
     cfg = json.load(f)
 
 edited = False
+edited_agents = []
 agents = cfg.get("agent", {})
 
-# find the orchestrator: agent with a permission.task block
-orchestrator = None
+# Edit EVERY agent that has a permission.task block (option C):
+# any agent that can delegate (plan, build, gentle-orchestrator, ...)
+# gets the vision permission and the Handoff rule, so pasting an
+# image works regardless of which agent the user talks to.
 for name, agent in agents.items():
-    if isinstance(agent, dict) and "permission" in agent and isinstance(agent["permission"], dict) and "task" in agent["permission"]:
-        orchestrator = name
-        break
-if orchestrator is None and agents:
-    orchestrator = next(iter(agents))
-
-if orchestrator:
-    agent = agents[orchestrator]
-    # 2a. permission.task -> vision: allow
+    if not isinstance(agent, dict):
+        continue
     perm = agent.get("permission", {})
     task = perm.get("task", {})
-    if isinstance(task, dict) and "vision" not in task:
+    if not isinstance(task, dict):
+        print(f"[INFO] Skipping '{name}' (no permission.task)")
+        continue
+    # 2a. permission.task -> vision: allow
+    if "vision" not in task:
         task["vision"] = "allow"
         perm["task"] = task
         agent["permission"] = perm
         edited = True
-        print(f"[ OK ] Permission added: {orchestrator}.permission.task.vision = allow")
+        print(f"[ OK ] Permission added: {name}.permission.task.vision = allow")
     else:
-        print("[INFO] Permission vision already present")
+        print(f"[INFO] Permission vision already present in '{name}'")
     # 2b. append the vision rule to the prompt
     if isinstance(agent.get("prompt"), str):
         if "Image Vision Handoff" not in agent["prompt"]:
             agent["prompt"] = agent["prompt"].rstrip() + "\n\n" + rule.strip()
             edited = True
-            print(f"[ OK ] Vision Handoff rule appended to {orchestrator} prompt")
+            print(f"[ OK ] Vision Handoff rule appended to '{name}' prompt")
         else:
-            print("[INFO] Vision Handoff rule already present")
-else:
-    print("[WARN] No orchestrator agent found - add config manually (see config/opencode.json.md)")
+            print(f"[INFO] Vision Handoff rule already present in '{name}'")
+    edited_agents.append(name)
+
+if not edited_agents:
+    print("[WARN] No agent with permission.task found - add config manually (see config/opencode.json.md)")
 
 if edited:
     with open(config_path, "w", encoding="utf-8") as f:
@@ -131,9 +133,9 @@ else:
 PYEOF
   elif command -v jq >/dev/null 2>&1; then
     info "python3 not found, using jq (permission edit only - rule must be added manually)"
-    # naive but safe: add vision allow to every permission.task present
-    jq '.agent |= with_entries(if .value.permission.task then .value.permission.task.vision = "allow" else . end)' "$CONFIG_PATH" > "$CONFIG_PATH.tmp" && mv "$CONFIG_PATH.tmp" "$CONFIG_PATH"
-    ok "opencode.json updated (permission)"
+    # add vision allow to EVERY permission.task present (option C)
+    jq '.agent |= with_entries(.value.permission.task.vision = "allow")' "$CONFIG_PATH" > "$CONFIG_PATH.tmp" && mv "$CONFIG_PATH.tmp" "$CONFIG_PATH"
+    ok "opencode.json updated (permission on all agents)"
   else
     info "Neither python3 nor jq found - opencode.json NOT edited automatically"
     info "See config/opencode.json.md for the manual changes"
