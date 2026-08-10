@@ -12,21 +12,7 @@
 
 </div>
 
-## Quick Start
-
-```powershell
-# Windows
-powershell -ExecutionPolicy Bypass -c "irm https://raw.githubusercontent.com/ianEstrada/opencode-vision-bridge/master/install.ps1 | iex"
-```
-
-```bash
-# macOS / Linux
-curl -fsSL https://raw.githubusercontent.com/ianEstrada/opencode-vision-bridge/master/install.sh | bash
-```
-
-Restart OpenCode, paste an image, done. Full setup in [Installation](#installation).
-
----
+## Why
 
 Vision Agent gives eyes to OpenCode models that cannot see images. When you
 paste a screenshot into the chat with a non-multimodal model, OpenCode fails
@@ -34,8 +20,23 @@ with:
 
 <img src="assets/error-screenshot.png" alt="Cannot read clipboard error" width="60%">
 
-Vision Agent solves this with a two-piece architecture designed for
-reliability:
+In a plain chat session, switching models to "look at an image" is annoying.
+In an **orchestrated workflow** — a harness like Gentle-AI, SDD phases, or any
+setup with agents delegating to sub-agents — it is a **showstopper**. Your
+orchestrator agent drives the whole pipeline, and every agent in that pipeline
+shares the same model. Needing vision means either:
+
+- switching the active model mid-workflow (breaks context, breaks momentum,
+  breaks automation), or
+- manually describing images yourself before pasting them (tedious, slow,
+  and it stops the flow dead).
+
+Vision Agent removes that decision entirely. The orchestrator keeps running
+its model; image handling is **automatized** — any agent that can delegate
+gets eyes, without switching models once. In a harness where automation is
+the whole point, that is the difference between a flow and a chore.
+
+It works through a two-piece architecture designed for reliability:
 
 - **`vision-bridge` plugin (Gatekeeper)** — detects the pasted image,
   persists it to disk, and replaces it with a placeholder carrying the file
@@ -57,35 +58,24 @@ See [Architecture](docs/ARCHITECTURE.md) for the full rationale.
 
 ---
 
-## Why
+## Quick Start
 
-If you run a plain chat session, switching models to "look at an image" is
-annoying. If you run an **orchestrated workflow** — a harness like Gentle-AI,
-SDD phases, or any setup with agents delegating to sub-agents — it is a
-**showstopper**. Your orchestrator agent drives the whole pipeline, and every
-agent in that pipeline shares the same model. Needing vision means either:
+```powershell
+# Windows
+powershell -ExecutionPolicy Bypass -c "irm https://raw.githubusercontent.com/ianEstrada/opencode-vision-bridge/master/install.ps1 | iex"
+```
 
-- switching the active model mid-workflow (breaks context, breaks momentum,
-  breaks automation), or
-- manually describing images yourself before pasting them (tedious, slow,
-  and it stops the flow dead).
+```bash
+# macOS / Linux
+curl -fsSL https://raw.githubusercontent.com/ianEstrada/opencode-vision-bridge/master/install.sh | bash
+```
 
-Vision Agent removes that decision entirely. The orchestrator keeps running
-its model; image handling is **automatized** — any agent that can delegate
-gets eyes, without switching models once. In a harness where automation is
-the whole point, that is the difference between a flow and a chore.
-
----
-
-## Demo
-
-<img src="assets/demo.gif" alt="Vision Agent demo" width="100%">
+Restart OpenCode, paste an image, done. Full setup in [Installation](#installation).
 
 ---
 
 ## Table of Contents
 
-- [Demo](#demo)
 - [Why](#why)
 - [Quick Start](#quick-start)
 - [Installation](#installation)
