@@ -12,6 +12,22 @@
 
 </div>
 
+## Quick Start
+
+```powershell
+# Windows
+powershell -ExecutionPolicy Bypass -c "irm https://raw.githubusercontent.com/ianEstrada/opencode-vision-bridge/master/install.ps1 | iex"
+```
+
+```bash
+# macOS / Linux
+curl -fsSL https://raw.githubusercontent.com/ianEstrada/opencode-vision-bridge/master/install.sh | bash
+```
+
+Restart OpenCode, paste an image, done. Full setup in [Installation](#installation).
+
+---
+
 Vision Agent gives eyes to OpenCode models that cannot see images. When you
 paste a screenshot into the chat with a non-multimodal model, OpenCode fails
 with:
@@ -50,6 +66,7 @@ See [Architecture](docs/ARCHITECTURE.md) for the full rationale.
 ## Table of Contents
 
 - [Demo](#demo)
+- [Quick Start](#quick-start)
 - [Installation](#installation)
 - [Vision models](#vision-models)
 - [Verification](#verification)
@@ -159,6 +176,10 @@ The sub-agent needs one multimodal model. Choose the one that fits your setup:
 | Groq returns HTTP 429 | Free-tier rate limit | Switch the sub-agent model to MiMo-V2.5 |
 | The description invents text | Image was resized somewhere | Use this plugin unmodified (no resize path exists) |
 
+> [!TIP]
+> Still stuck? [Open an issue](https://github.com/ianEstrada/opencode-vision-bridge/issues/new)
+> with your setup (OS, OpenCode version, model) and the error message.
+
 ---
 
 ## Repository structure
@@ -182,6 +203,12 @@ opencode-vision-bridge/
 ```
 
 ---
+
+## Contributing
+
+Found a bug or have an idea? Open an [issue](https://github.com/ianEstrada/opencode-vision-bridge/issues)
+or send a pull request. Keep contributions focused: the design rules
+([Architecture](docs/ARCHITECTURE.md)) are the contract.
 
 ## License
 
