@@ -1,5 +1,18 @@
 # Architecture
 
+## Motivation
+
+In an orchestrated workflow (a harness like Gentle-AI, SDD phases, or any
+setup where an orchestrator delegates to sub-agents), every agent shares the
+same model. If that model cannot see images, pasting a screenshot becomes a
+showstopper: you either switch models mid-workflow (breaking context and
+automation) or describe images by hand before pasting (tedious and slow).
+
+Vision Agent removes that decision. The orchestrator keeps its model; any
+agent that can delegate gets image handling automatically. Automation is the
+whole point of a harness — image handling should not be the exception that
+requires a human.
+
 ## Why this design
 
 Vision Agent uses a two-piece architecture: a **gatekeeper plugin** and a

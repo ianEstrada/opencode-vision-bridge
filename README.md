@@ -57,6 +57,26 @@ See [Architecture](docs/ARCHITECTURE.md) for the full rationale.
 
 ---
 
+## Why
+
+If you run a plain chat session, switching models to "look at an image" is
+annoying. If you run an **orchestrated workflow** — a harness like Gentle-AI,
+SDD phases, or any setup with agents delegating to sub-agents — it is a
+**showstopper**. Your orchestrator agent drives the whole pipeline, and every
+agent in that pipeline shares the same model. Needing vision means either:
+
+- switching the active model mid-workflow (breaks context, breaks momentum,
+  breaks automation), or
+- manually describing images yourself before pasting them (tedious, slow,
+  and it stops the flow dead).
+
+Vision Agent removes that decision entirely. The orchestrator keeps running
+its model; image handling is **automatized** — any agent that can delegate
+gets eyes, without switching models once. In a harness where automation is
+the whole point, that is the difference between a flow and a chore.
+
+---
+
 ## Demo
 
 <img src="assets/demo.gif" alt="Vision Agent demo" width="100%">
@@ -66,6 +86,7 @@ See [Architecture](docs/ARCHITECTURE.md) for the full rationale.
 ## Table of Contents
 
 - [Demo](#demo)
+- [Why](#why)
 - [Quick Start](#quick-start)
 - [Installation](#installation)
 - [Vision models](#vision-models)
