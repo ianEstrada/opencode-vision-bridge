@@ -38,7 +38,7 @@ the whole point, that is the difference between a flow and a chore.
 
 **Before and after:**
 
-<img src="assets/demo.gif" alt="Vision Agent demo - paste, delegate, get analysis" width="100%">
+<img src="assets/demo.gif" alt="Terminal demo: paste an image and the vision agent returns a detailed description without switching models" width="100%">
 
 It works through a two-piece architecture designed for reliability:
 
