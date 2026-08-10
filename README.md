@@ -16,9 +16,7 @@ Vision Agent gives eyes to OpenCode models that cannot see images. When you
 paste a screenshot into the chat with a non-multimodal model, OpenCode fails
 with:
 
-```
-ERROR: Cannot read "clipboard" (this model does not support image input)
-```
+<img src="assets/error-screenshot.png" alt="Cannot read clipboard error" width="60%">
 
 Vision Agent solves this with a two-piece architecture designed for
 reliability:
@@ -31,12 +29,27 @@ reliability:
   Groq), reads the image from the placeholder path, and returns a detailed
   description.
 
+```mermaid
+flowchart LR
+    U[User pastes image] --> P[vision-bridge plugin<br/>Gatekeeper ~1ms]
+    P -->|placeholder with path| O[Orchestrator<br/>any agent]
+    O -->|always delegates| V[vision sub-agent<br/>MiMo-V2.5 / Groq]
+    V -->|reads image + describes| R[Full analysis]
+```
+
 See [Architecture](docs/ARCHITECTURE.md) for the full rationale.
+
+---
+
+## Demo
+
+<img src="assets/demo.gif" alt="Vision Agent demo" width="100%">
 
 ---
 
 ## Table of Contents
 
+- [Demo](#demo)
 - [Installation](#installation)
 - [Vision models](#vision-models)
 - [Verification](#verification)
